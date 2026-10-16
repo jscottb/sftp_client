@@ -101,7 +101,7 @@ Type `help` or `?` at the prompt for the full reference.
 | `get [-f\|-i] remote [local]` | Download a file |
 | `put [-f\|-i] local [remote]` | Upload a file |
 | `dirput [-f\|-i] local [remote]` | Upload a directory tree |
-| `mget [-f\|-i] pattern` | Download the files that match a glob |
+| `mget [-f\|-i] pattern` | Download the files that match a glob (directories, links to them, and broken links are skipped) |
 | `mput [-f\|-i] pattern` | Upload the files that match a glob |
 
 **Overwrite protection.** By default an existing destination is skipped.
@@ -127,7 +127,7 @@ uploads `name\`.
 | Command | Description |
 |---|---|
 | `rm path` / `delete path` | Remove a remote file |
-| `rename [-f\|-i] old new` | Rename a remote file |
+| `rename [-f\|-i] old new` | Rename or move a remote file; like `mv`, an existing directory (or a trailing `/`) receives `old` under its own name |
 | `chmod mode path` | Change permissions (octal) |
 | `chown uid path` | Change owner (numeric uid) |
 | `chgrp gid path` | Change group (numeric gid) |
