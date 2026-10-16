@@ -117,6 +117,10 @@ allows it), and refuses a read-only file; `chmod` it first. A downloaded file ke
 permissions of the local file it replaces, or gets the remote permissions filtered by your
 umask.
 
+Downloads and the `rcat`/`rhead`/`rtail` viewers accept regular files only; devices such as
+`/dev/zero`, FIFOs and sockets are refused (`mget` skips them with a warning). An upload whose
+local source changes size or modification time while it is being sent is not published.
+
 **Quoting.** Quote names that contain spaces (`"my file.txt"`) or escape the space
 (`my\ file.txt`). Backslashes are literal, so Windows paths work as typed, except before a
 space, a quote or the end of the line: there `\\` is one literal backslash, so `put name\\ dest`
@@ -195,12 +199,15 @@ A script is a plain text file with one command per line. Blank lines and lines t
 ```
 play script.sftp                                   # from the prompt
 python3 sftp_client.py user@host -b script.sftp    # non-interactive
+printf 'cd logs\nmget *.log\n' | python3 sftp_client.py user@host -p vault:host -b -   # stdin
 ```
 
 - The script stops at the first command that fails.
 - Scripts can `play` other scripts, up to 10 levels deep. Relative paths resolve against the
   directory of the calling script.
 - A script that runs `open` must pass `-p` or `-i`. Scripts never prompt for passwords.
+- `-b -` (or `play -`) reads the script from standard input; `/dev/stdin`, named pipes and
+  `<(...)` work as script paths too.
 
 An example template is in [`templates/push_json_files.sftp`](templates/push_json_files.sftp).
 It uploads every `*.json` file from a local directory to a remote directory.
@@ -211,6 +218,11 @@ Atomic uploads are on by default. Each upload is written to a hidden temporary f
 (`.sftp-<id>.tmp`) in the destination directory and renamed into place only after it
 completes, so a failed transfer never leaves a partial file. Turn this off with `--no-atomic`
 or `atomic off` if the server doesn't allow renames.
+
+If the connection drops or the server stops responding for 30 seconds, the session is closed
+("Connection lost" or "Connection timed out"). A temporary file that could not be removed then
+is deleted the next time you `open` the same host. During a transfer, Ctrl-C takes effect at the
+next chunk so the session stays usable; press it twice to stop a stuck transfer at once.
 
 ## Credential vault
 
